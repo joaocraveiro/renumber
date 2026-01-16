@@ -47,8 +47,14 @@ export const PracticeScreen = () => {
   useEffect(() => {
     return () => {
       timersRef.current.forEach(clearTimeout);
+      timersRef.current = [];
     };
   }, []);
+
+  const clearTimers = () => {
+    timersRef.current.forEach(clearTimeout);
+    timersRef.current = [];
+  };
 
   const schedule = (callback: () => void, delayMs: number) => {
     const timer = setTimeout(callback, delayMs);
@@ -56,6 +62,7 @@ export const PracticeScreen = () => {
   };
 
   const startTest = () => {
+    clearTimers();
     const [minDigits, maxDigits] = difficultyConfig[difficulty].digits;
     const digits = Math.floor(Math.random() * (maxDigits - minDigits + 1)) + minDigits;
     const numberValue = randomNumber(digits);

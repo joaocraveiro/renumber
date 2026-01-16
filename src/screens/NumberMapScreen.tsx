@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { FlatList, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, SectionList, StyleSheet, Text, TextInput, View } from 'react-native';
 import { TAG_SUGGESTIONS } from '../data/suggestions';
 import { getMappedPercentage, getMappingSuccess, getTagRates, useAppContext } from '../context/AppContext';
 
@@ -73,35 +73,41 @@ const NumberRow = ({ numberValue }: { numberValue: string }) => {
   );
 };
 
-const NumberPanel = ({ length }: { length: number }) => {
-  const { state } = useAppContext();
-  const numbers = useMemo(() => getNumbersByLength(length), [length]);
-  const mappings = numbers.map((value) => state.mappings[value]).filter(Boolean);
-  const percentage = getMappedPercentage(mappings);
-
-  return (
-    <View style={styles.panel}>
-      <Text style={styles.panelTitle}>{length} digit{length > 1 ? 's' : ''}</Text>
-      <Text style={styles.panelSubtitle}>{percentage}% mapped</Text>
-      <FlatList
-        data={numbers}
-        keyExtractor={(item) => item}
-        renderItem={({ item }) => <NumberRow numberValue={item} />}
-        scrollEnabled={false}
-      />
-    </View>
-  );
-};
-
 export const NumberMapScreen = () => {
+  const { state } = useAppContext();
+  const sections = useMemo(() => {
+    return [1, 2, 3].map((length) => {
+      const numbers = getNumbersByLength(length);
+      const mappings = numbers.map((value) => state.mappings[value]).filter(Boolean);
+      return {
+        title: `${length} digit${length > 1 ? 's' : ''}`,
+        mappedPercentage: getMappedPercentage(mappings),
+        data: numbers,
+      };
+    });
+  }, [state.mappings]);
+
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.title}>Number Map</Text>
-      <Text style={styles.subtitle}>Build your personal image system.</Text>
-      <NumberPanel length={1} />
-      <NumberPanel length={2} />
-      <NumberPanel length={3} />
-    </ScrollView>
+    <SectionList
+      sections={sections}
+      keyExtractor={(item) => item}
+      renderItem={({ item }) => <NumberRow numberValue={item} />}
+      renderSectionHeader={({ section }) => (
+        <View style={styles.panel}>
+          <Text style={styles.panelTitle}>{section.title}</Text>
+          <Text style={styles.panelSubtitle}>{section.mappedPercentage}% mapped</Text>
+        </View>
+      )}
+      ListHeaderComponent={
+        <View style={styles.header}>
+          <Text style={styles.title}>Number Map</Text>
+          <Text style={styles.subtitle}>Build your personal image system.</Text>
+        </View>
+      }
+      stickySectionHeadersEnabled={false}
+      contentContainerStyle={styles.content}
+      style={styles.container}
+    />
   );
 };
 
@@ -113,6 +119,9 @@ const styles = StyleSheet.create({
   content: {
     padding: 16,
     paddingBottom: 120,
+  },
+  header: {
+    marginBottom: 16,
   },
   title: {
     fontSize: 28,
@@ -128,7 +137,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 16,
     padding: 16,
-    marginBottom: 16,
+    marginBottom: 8,
     shadowColor: '#000',
     shadowOpacity: 0.08,
     shadowRadius: 6,
