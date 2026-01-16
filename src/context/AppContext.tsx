@@ -30,7 +30,7 @@ export type AppState = {
 
 type AppContextValue = {
   state: AppState;
-  addTag: (numberValue: string, label: string) => string | null;
+  addTag: (numberValue: string, label: string) => string;
   updateTag: (numberValue: string, tagId: string, label: string) => void;
   recordTest: (result: TestResult, usedTags: Array<{ numberValue: string; tagId: string; correct: boolean }>) => void;
 };
@@ -128,7 +128,6 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
 
   const addTag = useCallback((numberValue: string, label: string) => {
     const nextId = `${numberValue}-${Date.now()}`;
-    let createdId: string | null = null;
     setState((prev) => {
       const mapping = prev.mappings[numberValue];
       if (!mapping) {
@@ -140,7 +139,6 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
         usageCount: 0,
         successCount: 0,
       };
-      createdId = nextId;
       return {
         ...prev,
         mappings: {
@@ -152,7 +150,7 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
         },
       };
     });
-    return createdId;
+    return nextId;
   }, []);
 
   const updateTag = useCallback((numberValue: string, tagId: string, label: string) => {
